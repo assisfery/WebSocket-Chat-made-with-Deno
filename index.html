@@ -34,6 +34,11 @@
 			display: inline-block;
 		}
 
+		.bubble-info{
+			background: #27c0e9;
+			color: #fff;
+		}
+
 	</style>
 </head>
 <body>
@@ -137,7 +142,13 @@
 				var message = JSON.parse(event.data);
 
 				if(message.type == "message")
-				$("#message-box").append('<div><div class="bubble"><b>' + message.user + ': </b>' + message.content + '</div></div>');
+				{
+					if(message.user != userName)
+						$("#message-box").append('<div><div class="bubble"><b>' + message.user + ': </b>' + message.content + '</div></div>');
+					else
+						$("#message-box").append('<div class="text-right"><div class="bubble bubble-info"><b>' + message.user + ': </b>' + message.content + '</div></div>');
+				}
+				
 
 			};
 		}
