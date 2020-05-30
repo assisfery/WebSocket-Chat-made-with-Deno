@@ -17,7 +17,14 @@ wss.on("connection", function (ws: WebSocket) {
 	ws.on("message", function (message: string) {
 
 		console.log(message);
-		ws.send(message);
+		//ws.send(message);
+
+		// broadcast message
+		wss.clients.forEach(function each(client) {
+			if (!client.isClosed) {
+				client.send(message);
+			}
+		});
 
 	});
 

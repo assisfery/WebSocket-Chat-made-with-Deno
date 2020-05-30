@@ -12,12 +12,26 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 
+	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
 	<style>
 		
 		.box{
 			width: 90%;
 			max-width: 600px;
 			margin: 32px auto;
+		}
+
+		#loader, #chatbox{
+			display: none;
+		}
+
+		.bubble{
+			padding: 4px 8px;
+			border-radius: 4px;
+			background: #eee;
+			margin: 8px 0;
+			display: inline-block;
 		}
 
 	</style>
@@ -34,11 +48,18 @@
 				<div class="spinner-border  text-muted"></div>
 			</div>
 
-			<div id="sigin" class="my-4">
+			<div id="sign-in" class="my-4">
 
 				<div class="bg-light py-2 px-4 rounded">
 
 					<h3>Sigin</h3>
+
+					<div class="form-group">
+						<label for="usr">Name:</label>
+						<input type="text" class="form-control" id="usr">
+					</div>
+
+					<button class="btn btn-primary" onclick="main()">Entrar</button>
 
 				</div>
 
@@ -50,6 +71,15 @@
 
 					<h3>Chat</h3>
 
+					<div id="message-box"></div>
+
+					<div class="input-group">
+						<input type="text" class="form-control" placeholder="message..." id="msg">
+						<div class="input-group-append">
+							<button class="btn btn-primary" onclick="send()">Send</button>
+						</div>
+					</div>
+
 				</div>
 				
 			</div>
@@ -57,6 +87,79 @@
 		</div>
 
 	</div>
+
+	<script>
+		
+		var userName = null;
+
+		var clientWS = null;
+
+
+		function main()
+		{
+			if($("#usr").val() == "")
+			{
+				swal("Warning", "Empty name!", "warning");
+				return;
+			}
+
+			userName = $("#usr").val();
+
+			$("#loader").show();
+			$("#sign-in").hide();
+
+			clientWS = new WebSocket("ws://localhost:8080");
+
+			clientWS.onopen = function (event) {
+				swal("Conneceted", "Connected successfully!", "success");
+
+				$("#loader").hide();
+				$("#chatbox").show();			
+			};
+
+			clientWS.onerror = function (event) {
+				swal("Error", "Something happens!", "error");
+
+				$("#chatbox").hide();
+				$("#sign-in").show();			
+			};
+
+			clientWS.onclose = function (event) {
+				swal("Closed", "Your connection was closed!", "info");
+
+				$("#chatbox").hide();
+				$("#sign-in").show();			
+			};
+
+			clientWS.onmessage = function (event) {
+				console.log(event.data);
+
+				var message = JSON.parse(event.data);
+
+				if(message.type == "message")
+				$("#message-box").append('<div><div class="bubble"><b>' + message.user + ': </b>' + message.content + '</div></div>');
+
+			};
+		}
+
+		function send()
+		{
+			if($("#msg").val() == "")
+				return;
+
+			var message = {
+				type: "message",
+				user: userName,
+				content: $("#msg").val(),
+			};
+
+			clientWS.send(JSON.stringify(message));
+
+			$("#msg").val("");
+		}
+
+
+	</script>
 
 </body>
 </html>
